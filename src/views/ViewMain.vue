@@ -1,6 +1,6 @@
 <template>  
   <v-container>
-    <user-form v-if="gameState==1" v-on:changeGameState="saveUser($event)"></user-form>
+    <user-form v-if="gameState==1" v-on:change-game-state="saveUser($event)"></user-form>
     <game v-else-if="gameState==2"></game>
   </v-container>
 </template>
@@ -22,6 +22,7 @@ export default {
   methods: {
     ...mapMutations(['changeGameState','setUsername']),
     saveUser(data){
+      localStorage.username = data.username;
       this.setUsername(data.username)
       this.changeGameState(data.state)
     }

@@ -7,9 +7,5 @@ export default class Food extends Phaser.GameObjects.Image {
             this.setOrigin(0);
             scene.children.add(this);        
         }      
-    }
-    eat(sound){        
-        
-        sound.play('thud', { volume: 0.75 }); 
-    }
+    }    
 }

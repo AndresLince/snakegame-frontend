@@ -6,7 +6,18 @@
     <v-card-title>
     <v-row>
       <v-col>
-        {{username}}
+        <v-icon>{{ userImage }}</v-icon>
+        {{username}}         
+          <v-btn
+            class="ma-2"
+            color="primary"
+            dark
+            @click="editUserName"
+          >
+            <v-icon dark>
+             {{ AccountEditImage }}
+            </v-icon>
+      </v-btn>
       </v-col>
       <v-col class="align-right">
          Score: {{score}}
@@ -23,54 +34,26 @@
       ></v-progress-circular>
     
       </v-card-text>  
-  </v-card>
-  <v-dialog
-      v-model="dialog"
-      persistent
-      max-width="400"
-    >      
-      <v-card>
-        <v-card-title class="headline container_button">
-         GAME OVER
-        </v-card-title>
-         <v-card-text>
-           Score: {{score}}
-         </v-card-text>
-        <v-card-text v-if="topScores.length>0">    
-            <strong>Top scores:</strong>
-            <v-simple-table>
-              <template>                               
-                <tbody>
-                  <tr
-                    v-for="(user) in topScores" v-bind:key="user.id"
-                  >
-                    <td>{{user.username}} </td>
-                    <td>{{user.score}}</td>
-                  </tr>
-                </tbody>
-              </template>
-            </v-simple-table>
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn
-            color="green darken-1"
-            text
-            @click="restartGame"
-          >
-            Retry
-          </v-btn>         
-        </v-card-actions>
-      </v-card>
-    </v-dialog>  
+  </v-card>  
+  <modal-dialog 
+    :dialog="dialog"
+    :score="score"
+    :topScores="topScores"
+    v-on:restartGame="restartGame($event)"
+  >        
+  </modal-dialog>
   </v-container>
 </template>
 <script> 
 
 import { changeEmitter } from '../game/scenes/PlayScene';
-import { mapActions } from 'vuex'
+import { mapActions,mapMutations } from 'vuex'
 import store from '../store/index.js'
+import ModalDialog from './ModalDialog.vue';
+import { mdiAccount } from '@mdi/js'
+import { mdiAccountEdit } from '@mdi/js'
 export default {
+  components: { ModalDialog },
   name: 'Game',
   data() {
     return {
@@ -78,7 +61,9 @@ export default {
       gameInstance: null,
       containerId: 'game-container',  
       dialog:false,
-      score:0    
+      score:0,    
+      userImage: mdiAccount,
+      AccountEditImage: mdiAccountEdit
     }
   }, 
   async mounted() {
@@ -103,6 +88,7 @@ export default {
   },
   methods: {
      ...mapActions(['fetchTopScores','addScore']),
+     ...mapMutations(['changeGameState']),
     finishedGame: async function () {
       this.dialog=true;      
       await this.addScore({username:this.username,score:this.score});
@@ -115,6 +101,10 @@ export default {
       this.dialog = false;
       this.score=0;
       changeEmitter.emit('restartGame');   
+    },
+    editUserName:function(){
+      
+      this.changeGameState(1);
     }
   }
 }

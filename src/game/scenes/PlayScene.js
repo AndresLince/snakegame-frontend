@@ -1,13 +1,14 @@
 import { Scene } from 'phaser'
 import green_apple from '@/assets/green_apple.png'
 import red_apple from '@/assets/red_apple.png'
-import body from '@/assets/snake_body2.png'
+import body from '@/assets/snake_body.png'
 import rockImage from '@/assets/spike.png'
 import flame from '@/assets/flame.png'
 import Snake from '../models/Snake.js'
 import Food from '../models/Food.js'
-import thudMp3 from '@/assets/thud.mp3'
-import thudOgg from '@/assets/thud.ogg'
+import bite_apple from '@/assets/sounds/bite_apple.mp3'
+import crash from '@/assets/sounds/crash.mp3'
+import backgroundsound from '@/assets/sounds/backgroundsound.mp3'
 import { getArrayGrid,collided,selectValidLocation} from "../utils"
 import Obstacle from '../models/Obstacle.js'
 
@@ -23,6 +24,7 @@ var arrayRedApples=[];
 var scene;
 var total;
 var greenAppleCounter;
+var backGroundMusic;
 
 class ClaseEventEmitter extends Phaser.Events.EventEmitter{};
 
@@ -40,10 +42,13 @@ export default class PlayScene extends Scene {
     this.load.image('body', body);
     this.load.image('flame', flame);
     this.load.image('rock', rockImage);
-    this.load.audio('thud', [thudMp3, thudOgg])
+    this.load.audio('bite_apple', bite_apple)
+    this.load.audio('crash', crash)
+    this.load.audio('backgroundsound',backgroundsound)
   }  
 
-  create () {  
+  create () {      
+    this.setBackGroundMusic();
     scene=this.scene; 
     total=0;
     greenAppleCounter=0;
@@ -66,6 +71,12 @@ export default class PlayScene extends Scene {
     });
   }
 
+  setBackGroundMusic(){
+    backGroundMusic = this.sound.add('backgroundsound');
+    backGroundMusic.setLoop(true);
+    backGroundMusic.play({ volume: 0.2 });
+  }
+
   restartGame(){    
     scene.restart();
   }
@@ -73,6 +84,7 @@ export default class PlayScene extends Scene {
   update (time, delta) {
     
     if (!snake.alive){
+      backGroundMusic.stop();
       changeEmitter.emit('finishedGame');        
       this.scene.pause();
       return;
@@ -91,47 +103,19 @@ export default class PlayScene extends Scene {
     if (snake.update(time)){
         //  If the snake updated, we need to check for collision against food
 
-        if (collided(arrayGreenApples,snake,true)){
-          snake.grow();
-          food.eat(this.sound);
-          total++;
-          greenAppleCounter++;          
-          this.createGreenApples(1);
-          if(greenAppleCounter % 10 === 0){
-  
-              var pos = Phaser.Math.Between(0, 1);
-              if(pos==1){
-                arrayObstacles.forEach(element=>{                
-                  element.setTexture('flame');
-                })
-              }
-  
-              if(pos==0||arrayObstacles.length==0){
-                this.createObstacle(10);
-              }
-          }
-          changeEmitter.emit('changeScore', total); 
-         
+        if (collided(arrayGreenApples,snake,true)){          
+          this.collideWithGreenApple();
           return;
         }     
 
         if (collided(arrayObstacles,snake,false)){    
-          console.log("choca con obstaculo")             
-          snake.removeHead();     
-          snake.alive=false;
+          this.collideWithObstacle();
           return;
         }
 
         if (collided(arrayRedApples,snake,true)){
-          console.log("choca con manzana roja")      
-          total=total-2;      
-          if(total<0){
-            total=0;
-            snake.alive=false;
-          }        
-          changeEmitter.emit('changeScore', total); 
-          snake.decrease(2);     
-         
+              
+         this.collideWithRedApple();
           return;
         }
 
@@ -159,5 +143,44 @@ export default class PlayScene extends Scene {
       obstacle = new Obstacle(this,selectValidLocation(snake,arrayGrid,[arrayRedApples,arrayGreenApples,arrayObstacles]));
       arrayObstacles.push(obstacle);    
     }     
+  }
+  collideWithObstacle(){
+    console.log("choca con obstaculo")       
+    this.sound.play('crash', { volume: 0.75 });       
+    snake.removeHead();     
+    snake.alive=false;
+  }
+
+  collideWithRedApple(){
+    console.log("choca con manzana roja")      
+    this.sound.play('bite_apple', { volume: 0.75 }); 
+    total=total-2;      
+    if(total<0){
+      total=0;
+      snake.alive=false;
+    }        
+    changeEmitter.emit('changeScore', total); 
+    snake.decrease(2); 
+  }
+  collideWithGreenApple(){
+    snake.grow();          
+    total++;
+    greenAppleCounter++;          
+    this.createGreenApples(1);
+    this.sound.play('bite_apple', { volume: 0.75 }); 
+    if(greenAppleCounter % 10 === 0){
+
+        var pos = Phaser.Math.Between(0, 1);
+        if(pos==1){
+          arrayObstacles.forEach(element=>{                
+            element.setTexture('flame');
+          })
+        }
+
+        if(pos==0||arrayObstacles.length==0){
+          this.createObstacle(10);
+        }
+    }
+    changeEmitter.emit('changeScore', total); 
   }
 }

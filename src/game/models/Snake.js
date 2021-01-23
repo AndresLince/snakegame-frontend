@@ -17,43 +17,33 @@ export default class Snake {
     }
     moveFace(cursors){
 
-        if (cursors.left.isDown){
-            console.log("entra izq")
+        if (cursors.left.isDown){            
             return this.applyMoveFace(left,[up,down]);
         }
-        if (cursors.right.isDown){
-            console.log("entra dere")
+        if (cursors.right.isDown){            
             return this.applyMoveFace(right,[up,down]);
         }
-        if (cursors.up.isDown){  
-            console.log("entra arr")          
+        if (cursors.up.isDown){
             return this.applyMoveFace(up,[right,left]);
         }
-        if (cursors.down.isDown){
-            console.log("entra aba")
+        if (cursors.down.isDown){            
             return this.applyMoveFace(down,[right,left]);            
         }
     }
 
-    moveFaceTouch(x,y){        
-        
-        if(this.heading===up){
-            console.log("va para arriba")            
+    moveFaceTouch(x,y){ 
+        if(this.heading===up){            
             return this.validateTouchX(x);
         }
-        if(this.heading===down){
-            console.log("va para abajo")   
+        if(this.heading===down){            
             return this.validateTouchX(x);
         }
-        if(this.heading===left){
-            console.log("va para la izquierda")
+        if(this.heading===left){            
             return this.validateTouchY(y); 
         }
-        if(this.heading===right){
-            console.log("va para la derecha")
+        if(this.heading===right){            
             return this.validateTouchY(y);   
         }
-
     }
 
     validateTouchX(x){
@@ -64,8 +54,7 @@ export default class Snake {
             this.heading=right;                
         }
     }
-    validateTouchY(y){
-        console.log(y)
+    validateTouchY(y){        
         if(y<this.head.y){              
             this.heading=up;                
         }
@@ -83,8 +72,7 @@ export default class Snake {
     applyMoveFace(newDirection,arrayValidDirections){
 
         const index = arrayValidDirections.findIndex(item => this.direction === item);        
-        if(index!=-1){          
-            console.log(newDirection)  
+        if(index!=-1){                      
             this.heading = newDirection;
         }
     }
@@ -119,8 +107,7 @@ export default class Snake {
 
         var hitBody = Phaser.Actions.GetFirst(this.body.getChildren(), { x: this.head.x, y: this.head.y }, 1);
 
-        if (hitBody){
-            console.log('dead');
+        if (hitBody){            
             this.alive = false;
             return false;
         }
